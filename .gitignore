@@ -1,3 +1,5 @@
 /modules/
 /tempimages/
 booru2prompt.zip
+**/__pycache__/
+settings.json
