@@ -84,7 +84,6 @@ def savesettings(active, username, apikey, negprompt, ignoredtags):
 
 # We're loading the settings here since all the further functions depend on this existing already
 settings = loadsettings()
-print(f"[booru2prompt] settings: {settings}\n")
 
 
 def getauth():
@@ -239,6 +238,7 @@ def updatesettings(active=settings["active"]):
 def grabtags(
     url,
     negprompt,
+    tempignoredtags,
     replacespaces,
     replaceunderscores,
     escapeparentheses,
@@ -252,6 +252,7 @@ def grabtags(
     Args:
         url (str): Either the full path to the post, or just the posts' id, formatted like "id:xxxxxx"
         negprompt (str): A negative prompt to paste into the relevant field. Setting to None will delete the existing negative prompt at the target
+        tempignoredtags (str): A list of tags to ignore in the session. Will not be saved.
         replacespaces (bool): True to replace all the spaces in the tag list with ", "
         replaceunderscores (bool): True to replace the underscores in each tag with a space
         escapeparentheses (bool): True to escape the parentheses in each tag
@@ -332,7 +333,8 @@ def grabtags(
         tags = tags.replace("_", " ")
     if settings["ignored_tags"] and replacespaces and replaceunderscores:
         ignored_tags = settings["ignored_tags"].split(", ")
-        print(f"[booru2prompt] Tags that will be ignored in the prompt: {settings['ignored_tags']}\n")
+        if tempignoredtags:
+            ignored_tags = list(set(ignored_tags + tempignoredtags.split(", ")))
         tags = ", ".join([tag for tag in tags.split(", ") if tag not in ignored_tags])
     if escapeparentheses:
         tags = tags.replace("(", "\\(").replace(")", "\\)")
@@ -417,6 +419,13 @@ def on_ui_tabs():
                             interactive=True,
                         )
 
+                    tempignoredtags = gr.Textbox(
+                        label="Temp ignore tags",
+                        placeholder="List of tags that will be ignored during the session (in addition to the ignored tags setting).",
+                        lines=2,
+                        interactive=True,
+                    )
+
                     selectedtags = gr.Textbox(
                         label="Image Tags", interactive=settings["form_defaults"]["image_tags_interactive"], lines=3
                     )
@@ -439,6 +448,7 @@ def on_ui_tabs():
                         inputs=[
                             imagelink,
                             negprompt,
+                            tempignoredtags,
                             replacespaces,
                             replaceunderscores,
                             escapeparentheses,
