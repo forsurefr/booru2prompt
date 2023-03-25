@@ -8,7 +8,7 @@ from pathlib import Path
 import gradio as gr
 
 import modules.ui
-from modules import script_callbacks, scripts
+from modules import script_callbacks
 
 # The auto1111 guide on developing extensions says to use scripts.basedir() to get the current directory
 # However, for some reason, this kept returning the stable diffusion root instead.
@@ -142,7 +142,7 @@ def searchbooru(query, removeanimated, curpage, pagechange=0):
     # We're about to use this in a url, so make it a string real quick
     curpage = str(curpage)
 
-    url = host + f"/posts.json?"
+    url = f"{host}/posts.json?"
 
     # Only append login parameters if we actually got some from the above getauth()
     # In the default settings.json in the repo, these are empty strings, so they'll
@@ -200,7 +200,7 @@ def searchbooru(query, removeanimated, curpage, pagechange=0):
             # We're storing the images locally to be crammed into a Gradio gallery later.
             # This seemed simpler than using PIL images or whatever.
             savepath = edirectory + f"tempimages\\temp{i}.jpg"
-            image = urlretrieve(imageurl, savepath)
+            urlretrieve(imageurl, savepath)
             localimages.append((savepath, id))
 
     # We're returning not just the images for the gallery, but the current page number
@@ -527,12 +527,12 @@ def on_ui_tabs():
                         # be used as inputs, but so be it.
                         sendsearched.click(fn=None, _js="switch_to_select", outputs=imagelink)
         with gr.Tab("Settings/API Keys"):
-            settingshelptext = gr.HTML(
+            gr.HTML(
                 interactive=False,
                 show_label=False,
                 value="API info may not be necessary for some boorus, but certain information or posts may fail to load without it. For example, Danbooru doesn't show certain posts in search results unless you auth as a Gold tier member.",
             )
-            settingshelptext2 = gr.HTML(
+            gr.HTML(
                 interactive=False,
                 show_label=False,
                 value="Also, please set the booru selection here before using select or search.",
