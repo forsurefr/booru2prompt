@@ -35,6 +35,7 @@ settings = dict(
         include_meta=False,
         image_tags_interactive=False,
         image_link="",
+        include_image_id=True,
     ),
 )
 settings_path = Path(edirectory).joinpath("settings.json")
@@ -246,6 +247,7 @@ def grabtags(
     includecharacter,
     includecopyright,
     includemeta,
+    includeimageid,
 ):
     """Get the tags for the selected post and update all the relevant textboxes on the Select tab.
 
@@ -260,6 +262,7 @@ def grabtags(
         includecharacter (bool): True to include the character tags in the final tag string
         includecopyright (bool): True to include the copyright tags in the final tag string
         includemeta (bool): True to include the meta tags in the final tags string
+        includeimageid (bool): True to include the image ID in the final tags string
 
     Returns:
         (str, str, str, str, str, str): A bunch of strings that will update some gradio components.
@@ -338,6 +341,10 @@ def grabtags(
         tags = ", ".join([tag for tag in tags.split(", ") if tag not in ignored_tags])
     if escapeparentheses:
         tags = tags.replace("(", "\\(").replace(")", "\\)")
+
+    if includeimageid:
+        image_id = data["id"]
+        tags += f", [[booru_image_id={image_id}]]"
 
     # Adding a line for the negative prompt if we receieved one
     # It's formatted this way very specifically. This is how the metadata looks on pngs coming out of SD
@@ -441,6 +448,11 @@ def on_ui_tabs():
                     escapeparentheses = gr.Checkbox(
                         value=settings["form_defaults"]["escape_parentheses"], label="Escape parentheses"
                     )
+                    includeimageid = gr.Checkbox(
+                        value=settings["form_defaults"]["include_image_id"],
+                        label="Include image ID in tag string",
+                        interactive=True,
+                    )
 
                     selectbutton = gr.Button(value="Select Image", variant="primary")
                     selectbutton.click(
@@ -456,6 +468,7 @@ def on_ui_tabs():
                             includecharacter,
                             includecopyright,
                             includemeta,
+                            includeimageid,
                         ],
                         outputs=[
                             selectedtags,
