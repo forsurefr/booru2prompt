@@ -41,6 +41,15 @@ settings = dict(
 settings_path = Path(edirectory).joinpath("settings.json")
 
 
+def merge_dicts(source, destination):
+    for key, value in source.items():
+        if isinstance(value, dict):
+            node = destination.setdefault(key, {})
+            merge_dicts(value, node)
+        else:
+            destination[key] = value
+    return destination
+
 def loadsettings(settings=settings):
     """Return a dictionary of settings read from settings.json in the extension directory
 
@@ -50,8 +59,9 @@ def loadsettings(settings=settings):
     print(f"[booru2prompt] Loading settings ({settings_path})")
     if settings_path.exists():
         file = open(settings_path)
-        settings = settings | json.load(file)
+        saved_settings = json.load(file)
         file.close()
+        merge_dicts(saved_settings, settings)
     else:
         file = open(settings_path, "w")
         file.write(json.dumps(settings, indent=4))
